@@ -40,7 +40,7 @@ This package offers comprehensive tools for constructing and visualizing complex
 
 To start building a multilayer network, import the MultilayerNetwork class from the package:
 ```python
-from simpleG import MultilayerNetwork
+from simpleN import MultilayerNetwork
 ```
 *Initialize the network*
 ```

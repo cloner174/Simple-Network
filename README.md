@@ -83,7 +83,7 @@ visualizer = Visualize(network=graph)
 # Visualize the network
 visualizer.show_graph(edge_visibility_threshold=0.1)
 ```
-Alternatively:
+Or Simply:
 
 ```python
 Visualize(graph).show_graph()

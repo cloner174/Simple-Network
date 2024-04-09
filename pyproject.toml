@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Simple-Network"
+version = "0.1.0"
+description = "A basic tool designed for the construction and visualization of complex, multilayer networks."
+readme = "README.md"
+requires-python = ">=3.6"
+authors = [
+    { name = "Hamed Hajipour", email = "cloner174.org@gmail.com" },
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    'plotly',
+    'numpy'
+]
+[project.urls]
+Homepage = "https://github.com/cloner174/Simple-Network"
+Documentation = "https://github.com/cloner174/Simple-Network#readme"
+Repository = "https://github.com/cloner174/Simple-Network"
+Issues = "https://github.com/cloner174/Simple-Network/issues"

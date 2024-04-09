@@ -75,7 +75,7 @@ To visualize the network in 3D:
 
 ```python
 
-from visualize import Visualize
+from simpleN import Visualize
 
 # Create an instance of Visualize with the network
 visualizer = Visualize(network=graph)

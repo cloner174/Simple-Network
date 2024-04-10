@@ -9,7 +9,7 @@ class MultilayerNetwork:
         self.directed = directed
         self.node_count = 0
         self.node = [] # Retained as a list for flexibility
-        self.nodes = {} # Format: {layer_name: [ A List Contianed Nodes of this layer ]}
+        self.nodes = {} # Format: {layer_name: [ A List Contained Nodes of this layer ]}
         self.edges = {} # Format: {layer_name: numpy_array for adjacency matrix}
         self.layers = [] # Retained as a list for flexibility
         self.node_attributes = {}  # Format: {node: {attr_name: attr_value}}
@@ -30,7 +30,7 @@ class MultilayerNetwork:
                 return
             else: 
                 if layer_name_for_counting is None :
-                    raise ValueError( "You should pass a layer to do counting for layer mode ! obvisly! ")
+                    raise ValueError( "You should pass a layer to do counting for layer mode ! obviously! ")
                 else:
                     return len(self.nodes[layer_name_for_counting])
         else:
@@ -83,7 +83,7 @@ class MultilayerNetwork:
         if node not in self.node_attributes.keys():
             self.node_attributes[node] = {}
         else:
-            print(" The attr for this node already saved! if you are want to change it, You should start again with class")
+            pass
         self.node_attributes[node][attr_name] = attr_value
     
     def set_edge_attribute(self, node1, node2, layer_name, attr_name, attr_value):

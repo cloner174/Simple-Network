@@ -40,7 +40,7 @@ class Visualize:
                             edge_z.extend([z_i, z_j, None])
         # Inter-layer edges
         for edge in self.network.inter_layer_edges:
-            node1, layer1, node2, layer2, weight = edge
+            (node1, layer1), (node2, layer2), weight = edge
             if weight < edge_visibility_threshold:
                 continue
             x1, y1, z1 = node_positions[layer1][node1]

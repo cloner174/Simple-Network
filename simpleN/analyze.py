@@ -22,9 +22,11 @@ class MNAnalysis:
         Calculate the degree distribution for each layer of the network.
         """
         degree_distributions = {}
+        
         for layer in self.network.layers:
             degrees = self.network.calculate_layer_degrees(layer)
             degree_distributions[layer] = np.bincount(degrees) / float(len(degrees))
+        
         return degree_distributions
     
     
@@ -34,7 +36,9 @@ class MNAnalysis:
         This method combines all layers into one, summing up the weights of inter-layer edges.
         """
         aggregated_matrix = None
+        
         for layer in self.network.layers:
+            
             matrix = self.network.edges[layer]
             if isinstance(matrix, sp.lil_matrix):
                 matrix = matrix.tocsr()
@@ -42,6 +46,7 @@ class MNAnalysis:
                 aggregated_matrix = matrix
             else:
                 aggregated_matrix += matrix
+        
         return aggregated_matrix
     
     
@@ -50,7 +55,7 @@ class MNAnalysis:
         Detect communities within a specific layer using spectral clustering.
         """
         if layer_name not in self.network.layers:
-            raise ValueError(f"Layer {layer_name} not found.")
+            raise ValueError(f"Layer {layer_name} not found. Ensure the layer name is correct.")
         
         adjacency_matrix = self.network.edges[layer_name]
         if not sp.issparse(adjacency_matrix):
@@ -161,33 +166,32 @@ class MNAnalysis:
         return total_betweenness.tolist()
     
     
-    def calculate_centrality_measures(self, layer_name):
-        """
-        Calculate various centrality measures for a given layer, including degree centrality,
-        betweenness centrality, and eigenvector centrality.
-        """
+    def calculate_centrality_measures(self, layer_name, use_weight=False):
+        
         if layer_name not in self.network.layers:
             raise ValueError(f"Layer {layer_name} not found.")
         
         matrix = self.network.edges[layer_name]
+        
         if isinstance(matrix, list):
             matrix = np.array(matrix)
+        if not sp.issparse(matrix):
+            matrix = sp.csr_matrix(matrix)
         
-        try :
-            n = len(matrix)
-        except :
-            try :
-                n = matrix.shape[0]
-            except Exception as e :
-                raise Exception(e)
         # Degree Centrality
         if sp.issparse(matrix):
-            degree_centrality = matrix.sum(axis=0).A1 / (n - 1)
+            if use_weight:
+                degree_centrality = matrix.sum(axis=0).A1 / (matrix.shape[0] - 1)
+            else:
+                degree_centrality = (matrix != 0).sum(axis=0).A1 / (matrix.shape[0] - 1)
         else:
-            degree_centrality = matrix.sum(axis=1) / (n - 1)
+            if use_weight:
+                degree_centrality = matrix.sum(axis=1) / (matrix.shape[0] - 1)
+            else:
+                degree_centrality = (matrix != 0).sum(axis=1) / (matrix.shape[0] - 1)
         
         # Betweenness Centrality
-        betweenness_centrality = self._calculate_betweenness_centrality(matrix, n)
+        betweenness_centrality = self._calculate_betweenness_centrality(matrix, matrix.shape[0], use_weight)
         
         # Eigenvector Centrality
         eigenvector_centrality = self._calculate_eigenvector_centrality(matrix)
@@ -200,40 +204,110 @@ class MNAnalysis:
         return centralities
     
     
-    def _calculate_betweenness_centrality(self, matrix, n):
+    def calculate_centrality_with_attributes(self, layer_name, attribute_name, use_weight=False):
+        
+        if layer_name not in self.network.layers:
+            raise ValueError(f"Layer {layer_name} not found.")
+        
+        matrix = self.network.edges[layer_name]
+        if isinstance(matrix, list):
+            matrix = np.array(matrix)
+        if not sp.issparse(matrix):
+            matrix = sp.csr_matrix(matrix)
+        
+        # Retrieve node attributes
+        attributes = [self.network.node_attributes.get(node, {}).get(attribute_name, 1) for node in self.network.nodes[layer_name]]
+        
+        # Adjust matrix for attributes if using weights
+        if use_weight:
+            attr_matrix = sp.diags(attributes)
+            matrix = attr_matrix @ matrix if sp.issparse(matrix) else np.diag(attributes) @ matrix
+        
+        # Degree Centrality with attributes
+        degree_centrality = matrix.sum(axis=0).A1 / (matrix.shape[0] - 1) if sp.issparse(matrix) else matrix.sum(axis=1) / (matrix.shape[0] - 1)
+        
+        # Betweenness Centrality with attributes
+        betweenness_centrality = self._calculate_betweenness_centrality(matrix, matrix.shape[0], use_weight)
+        
+        # Eigenvector Centrality with attributes
+        eigenvector_centrality = self._calculate_eigenvector_centrality(matrix)
+        
+        centralities = {
+            'degree_centrality': degree_centrality.tolist(),
+            'betweenness_centrality': betweenness_centrality,
+            'eigenvector_centrality': eigenvector_centrality
+        }
+        
+        return centralities
+    
+    
+    def _calculate_betweenness_centrality(self, matrix, n, use_weight=False):
         """
-        Calculate betweenness centrality for each node in the network.
+        Calculate the betweenness centrality for each node in a weighted or unweighted graph.
         """
-        dist_matrix, predecessors = shortest_path(csgraph=matrix, directed=False, return_predecessors=True)
+        if use_weight:
+            # Use Dijkstra's algorithm for weighted graphs
+            dist_matrix, predecessors = shortest_path(csgraph=matrix, directed=self.network.directed, return_predecessors=True, unweighted=False)
+        else:
+            # Unweighted graph, use faster Floyd-Warshall algorithm
+            dist_matrix, predecessors = shortest_path(csgraph=matrix, directed=self.network.directed, return_predecessors=True, unweighted=True)
+        
         betweenness = np.zeros(n)
-        for start in range(n):
-            for end in range(n):
-                if start == end:
-                    continue
-                path = [end]
-                while path[-1] != start:
-                    pred = predecessors[start, path[-1]]
-                    if pred == -9999:  # Unreachable
-                        break
-                    path.append(pred)
-                path = path[::-1]  # Reverse to get the correct order
-                for i in range(len(path) - 1):
-                    betweenness[path[i]] += 1 / (len(path) - 1)
-        betweenness /= ((n - 1) * (n - 2))
+        for source in range(n):
+            for target in range(n):
+                if source != target:
+                    # Reconstruct the shortest path from source to target
+                    path = []
+                    intermediate = target
+                    while predecessors[source, intermediate] != -9999:
+                        path.append(intermediate)
+                        intermediate = predecessors[source, intermediate]
+                        if intermediate == source:
+                            break
+                    path.append(source)
+                    path.reverse()
+                    
+                    # Count the betweenness
+                    for v in path[1:-1]:  # exclude the source and target themselves
+                        betweenness[v] += 1
+        
+        # Normalize the betweenness scores
+        if not self.network.directed:
+            betweenness /= 2
         return betweenness.tolist()
     
     
-    def _calculate_eigenvector_centrality(self, matrix):
+    def _calculate_eigenvector_centrality(self, matrix, use_weight=False):
         """
         Calculate eigenvector centrality using the power iteration method.
+        Handles both sparse and dense matrix formats. Provides an option to consider or ignore edge weights.
+        
+        Args:
+        matrix (np.ndarray or sp.spmatrix): The adjacency matrix of the network.
+        use_weight (bool): If True, use the edge weights as given; if False, treat the graph as unweighted.
         """
-        if sp.issparse(matrix):
-            eigenvalue, eigenvector = eigs(A=matrix, k=1, which='LR')
-        else:
-            eigenvalue, eigenvector = np.linalg.eig(matrix)
-            largest = np.argmax(eigenvalue)
-            eigenvector = np.real(eigenvector[:, largest])
-        eigenvector_centrality = eigenvector / np.linalg.norm(eigenvector, 1)
-        return eigenvector_centrality.tolist()
+        try:
+            if not use_weight:
+                # Convert all non-zero entries to 1 to ignore actual weights
+                if sp.issparse(matrix):
+                    matrix = sp.csr_matrix((np.ones_like(matrix.data), matrix.indices, matrix.indptr), shape=matrix.shape)
+                else:
+                    matrix = np.where(matrix != 0, 1, 0)
+            
+            if sp.issparse(matrix):
+                matrix = matrix.astype(np.float64)  # Ensure matrix is of floating-point type
+                eigenvalue, eigenvector = eigs(A=matrix, k=1, which='LR', maxiter=10000, tol=1e-6)
+            else:
+                matrix = np.array(matrix, dtype=np.float64)  # Ensure matrix is of floating-point type
+                eigenvalue, eigenvector = np.linalg.eig(matrix)
+                largest = np.argmax(eigenvalue)
+                eigenvector = eigenvector[:, largest]
+            
+            eigenvector_centrality = np.abs(np.real(eigenvector)) / np.linalg.norm(np.real(eigenvector), 1)
+            return eigenvector_centrality.tolist()
+        
+        except Exception as e:
+            error_message = f"Failed to calculate eigenvector centrality. Ensure the matrix is appropriate for this operation. Error: {e}"
+            raise RuntimeError(error_message)
 
 #end#

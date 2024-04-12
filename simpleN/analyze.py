@@ -1,8 +1,11 @@
+#                                 #          In the Name of GOD   # #
+#
 import numpy as np
 import scipy.sparse as sp
+from scipy.sparse.csgraph import connected_components, shortest_path, dijkstra
 from scipy.sparse.linalg import eigs
 from sklearn.cluster import SpectralClustering
-from scipy.sparse.csgraph import connected_components, shortest_path
+from joblib import Parallel, delayed
 
 
 class MNAnalysis:
@@ -50,10 +53,8 @@ class MNAnalysis:
             raise ValueError(f"Layer {layer_name} not found.")
         
         adjacency_matrix = self.network.edges[layer_name]
-        if isinstance(adjacency_matrix, list):
-            adjacency_matrix = np.array(adjacency_matrix)
-        if sp.issparse(adjacency_matrix):
-            adjacency_matrix = adjacency_matrix.tocsr()
+        if not sp.issparse(adjacency_matrix):
+            adjacency_matrix = sp.csr_matrix(adjacency_matrix)
         
         clustering = SpectralClustering(n_clusters=n_clusters, affinity='precomputed', random_state=42)
         labels = clustering.fit_predict(adjacency_matrix)
@@ -62,22 +63,17 @@ class MNAnalysis:
     
     
     def calculate_global_efficiency(self, layer_name):
-        """
-        Calculate the global efficiency of the network in a specific layer.
-        Global efficiency is the average inverse shortest path length in the network.
-        """
-        if layer_name not in self.network.layers:
-            raise ValueError(f"Layer {layer_name} not found.")
-        
         matrix = self.network.edges[layer_name]
-        if isinstance(matrix, list):
-            matrix = np.array(matrix)
-        if sp.issparse(matrix):
-            distances = sp.csgraph.dijkstra(matrix, directed=self.network.directed)
-        else:
-            distances = sp.csgraph.dijkstra(matrix, directed=self.network.directed, limit=1000)
+        if not sp.issparse(matrix):
+            matrix = sp.csr_matrix(matrix)
         
-        efficiency = np.mean(1. / distances[distances != np.inf])
+        distances = dijkstra(matrix, directed=self.network.directed, unweighted=True)
+        finite_distances = distances[np.isfinite(distances) & (distances > 0)]
+        
+        if finite_distances.size == 0:
+            return 0  # Return 0 efficiency if there are no valid paths
+        
+        efficiency = np.mean(1. / finite_distances)
         return efficiency
     
     
@@ -91,11 +87,10 @@ class MNAnalysis:
         matrix = self.network.edges[layer_name]
         if isinstance(matrix, list):
             matrix = np.array(matrix)
-        if sp.issparse(matrix):
-            n_components, labels = connected_components(csgraph=matrix, directed=self.network.directed, return_labels=True)
-        else:
-            n_components, labels = connected_components(csgraph=sp.csr_matrix(matrix), directed=self.network.directed, return_labels=True)
+        if not sp.issparse(matrix):
+            matrix = sp.csr_matrix(matrix)
         
+        n_components, _ = connected_components(csgraph=matrix, directed=self.network.directed, return_labels=True)
         return n_components
     
     
@@ -133,6 +128,39 @@ class MNAnalysis:
         return {'density': density, 'weight_distribution': weight_distribution.tolist()}
     
     
+    def parallel_betweenness_centrality(self, layer_name):
+        matrix = self.network.edges[layer_name]
+        if not isinstance(matrix, sp.csr_matrix):
+            matrix = sp.csr_matrix(matrix)
+        n = matrix.shape[0]
+        
+        def compute_for_node(start):
+            _, predecessors = shortest_path(csgraph=matrix, directed=self.network.directed, indices=start, return_predecessors=True)
+            betweenness = np.zeros(n)
+            
+            for end in range(n):
+                if start == end:
+                    continue
+                path = []
+                intermediate = end
+                while intermediate != start:
+                    path.append(intermediate)
+                    intermediate = predecessors[intermediate]
+                    if intermediate == -9999:  # Check for unreachable nodes
+                        path = []
+                        break
+                path.reverse()
+                for node in path[1:-1]:
+                    betweenness[node] += 1
+            
+            return betweenness
+        
+        results = Parallel(n_jobs=-1)(delayed(compute_for_node)(i) for i in range(n))
+        total_betweenness = np.sum(results, axis=0)
+        total_betweenness /= 2  # to account for each path being counted twice in an undirected graph
+        return total_betweenness.tolist()
+    
+    
     def calculate_centrality_measures(self, layer_name):
         """
         Calculate various centrality measures for a given layer, including degree centrality,
@@ -145,8 +173,13 @@ class MNAnalysis:
         if isinstance(matrix, list):
             matrix = np.array(matrix)
         
-        n = len(matrix)
-        
+        try :
+            n = len(matrix)
+        except :
+            try :
+                n = matrix.shape[0]
+            except Exception as e :
+                raise Exception(e)
         # Degree Centrality
         if sp.issparse(matrix):
             degree_centrality = matrix.sum(axis=0).A1 / (n - 1)

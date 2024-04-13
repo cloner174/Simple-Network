@@ -17,6 +17,7 @@ class MultilayerNetwork:
         self.node_attributes = {}
         self.edge_attributes = {}
         self.inter_layer_edges = []#       Managing inter-layer edges
+        self.extra_edges = []
     
     
     def add_layer(self, layer_name : str ):
@@ -61,6 +62,9 @@ class MultilayerNetwork:
             if node1 not in self.nodes[layer_name1] or node2 not in self.nodes[layer_name1]:
                 raise ValueError("One or both nodes do not exist in the specified layer.")
             
+            
+            tuple_like = (node1, node2)
+            self.extra_edges.append( tuple_like )
             self._ensure_correct_matrix_size(layer_name1, node1, node2)
             node1_index = self.nodes[layer_name1].index(node1)
             node2_index = self.nodes[layer_name1].index(node2)

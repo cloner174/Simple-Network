@@ -2,10 +2,12 @@
 #
 import numpy as np
 import scipy.sparse as sp
-from scipy.sparse.csgraph import connected_components, shortest_path, dijkstra
 from scipy.sparse.linalg import eigs
-from sklearn.cluster import SpectralClustering
 from joblib import Parallel, delayed
+from sklearn.cluster import SpectralClustering
+from scipy.sparse.csgraph import connected_components, shortest_path, dijkstra
+
+
 
 
 class MNAnalysis:
@@ -35,16 +37,18 @@ class MNAnalysis:
         Aggregate the multilayer network into a single-layer network.
         This method combines all layers into one, summing up the weights of inter-layer edges.
         """
-        aggregated_matrix = []
+        from .net import MultilayerNetwork
         
-        for layer in self.network.layers:
-            
-            matrix = self.network.edges[layer]
-            if isinstance(matrix, sp.lil_matrix):
-                matrix = matrix.tocsr()
-            aggregated_matrix.append(matrix)
+        aggregated_matrix = MultilayerNetwork()
+        aggregated_matrix.add_layer('ALL')
         
-        return aggregated_matrix
+        for node_ in self.network.node_set :
+            aggregated_matrix.add_node(layer_name = 'ALL', node = node_)
+        
+        for edges_ in self.network.extra_edges:
+            aggregated_matrix.add_edge( node1= edges_[0], node2= edges_[1], layer_name1= 'ALL', weight=1 )
+        
+        return aggregated_matrix.edges
     
     
     def detect_communities(self, layer_name, n_clusters=2):

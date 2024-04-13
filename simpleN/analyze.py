@@ -34,8 +34,8 @@ class MNAnalysis:
     
     def aggregate_network(self, 
                           neet : bool = True, 
-                          return_adjacency_matric : bool = True, 
-                          return_aggregated_network : bool = False ):
+                          return_aggregated_network : bool = True, 
+                          return_adjacency_matric : bool = False ):
         """
         Aggregate the multilayer network into a single-layer network.
         This method combines all layers into one, summing up the weights of inter-layer edges.

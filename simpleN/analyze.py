@@ -32,37 +32,78 @@ class MNAnalysis:
         return degree_distributions
     
     
-    def aggregate_network(self, return_adjacency_matric : bool = True, return_aggregated_network : bool = False ):
+    def aggregate_network(self, 
+                          neet : bool = True, 
+                          return_adjacency_matric : bool = True, 
+                          return_aggregated_network : bool = False ):
         """
         Aggregate the multilayer network into a single-layer network.
         This method combines all layers into one, summing up the weights of inter-layer edges.
         """
         from .net import MultilayerNetwork
+        if neet:
+            aggregated_network = MultilayerNetwork()
+            aggregated_network.add_layer()
+            for node_ in self.network.node_set :
+                aggregated_network.add_node(node = node_)
         
-        aggregated_network = MultilayerNetwork()
-        aggregated_network.add_layer('ALL')
+            for edges_ in self.network.extra_edges:
+                aggregated_network.add_edge( node1= edges_[0], node2= edges_[1], weight=1 )
         
-        for node_ in self.network.node_set :
-            aggregated_network.add_node(layer_name = 'ALL', node = node_)
+            for node_, attrs_ in self.network.node_attributes.items() :
+                for attrs_name, attrs_values in attrs_.items() :
+                    aggregated_network.set_node_attribute( node= node_, attr_name = attrs_name , attr_value = attrs_values )
         
-        for edges_ in self.network.extra_edges:
-            aggregated_network.add_edge( node1= edges_[0], node2= edges_[1], layer_name1= 'ALL', weight=1 )
-        
-        for node_, attrs_ in self.network.node_attributes.items() :
-            for attrs_name, attrs_values in attrs_.items() :
-                aggregated_network.set_node_attribute( node= node_, attr_name = attrs_name , attr_value = attrs_values )
-        
-        if return_aggregated_network :
-            return aggregated_network
-        elif return_aggregated_network and return_adjacency_matric :
-            aggregated_matrix = aggregated_network.edges            
-            return aggregated_network, aggregated_matrix['ALL']
-        elif return_adjacency_matric == False and return_aggregated_network == False :
-            print( " No Action To Could Provide Output !")
-            return
-        else :
-            pass
-    
+            if return_aggregated_network == True and return_adjacency_matric == False :
+                return aggregated_network
+            elif return_aggregated_network == False and return_adjacency_matric == True :
+                aggregated_matrix = aggregated_network.edges            
+                return aggregated_matrix['ALL']
+            elif return_adjacency_matric == True and return_aggregated_network == True :
+                aggregated_matrix = aggregated_network.edges            
+                return aggregated_network, aggregated_matrix['ALL']
+            else :
+                print( " No Action To Could Provide Output !")
+                return
+        else:
+            aggregated_network = MultilayerNetwork()
+            sources = []
+            targets = []
+            for edges_ in self.network.extra_edges:
+                sources.append(edges_[0])
+                targets.append(edges_[1])
+            for node_ in range( len(self.network.node_set) ) :
+                aggregated_network.add_node(node = node_)
+            
+            if len(sources) != len(targets) :
+                raise BlockingIOError(" Opps ! No way ! ")
+            for i in range(len(sources)) :
+                source_node = sources[i]
+                target_node = targets[i]
+                
+                aggregated_network.add_edge( 
+                                            node1 = self.network.node_map[source_node]['index'], 
+                                            node2 = self.network.node_map[target_node]['index'], 
+                                            weight = 1 )
+            for node_, attrs_ in self.network.node_attributes.items() :
+                for attrs_name, attrs_values in attrs_.items() :
+                    aggregated_network.set_node_attribute( 
+                                                          node = self.network.node_map[node_]['index'] , 
+                                                          attr_name = attrs_name , 
+                                                          attr_value = attrs_values )
+            del sources
+            del targets
+            if return_aggregated_network == True and return_adjacency_matric == False :
+                return aggregated_network
+            elif return_aggregated_network == False and return_adjacency_matric == True :
+                aggregated_matrix = aggregated_network.edges            
+                return aggregated_matrix['ALL']
+            elif return_adjacency_matric == True and return_aggregated_network == True :
+                aggregated_matrix = aggregated_network.edges            
+                return aggregated_network, aggregated_matrix['ALL']
+            else :
+                print( " No Action To Could Provide Output !")
+                return
     
     def detect_communities(self, layer_name, n_clusters=2):
         """

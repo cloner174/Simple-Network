@@ -153,7 +153,7 @@ class MultilayerNetwork:
                 self.edges[layer_name] = new_matrix
     
     
-    def add_edge(self, node1, node2, layer_name1 : str, layer_name2 : str = None, weight : int | float = 1 ):
+    def add_edge(self, node1, node2, layer_name1 : str = 'ALL', layer_name2 : str = None, weight : int | float = 1 ):
         
         self._update_node_map( node_=node1, edge=node2)
         self._update_node_map( node_=node2, edge=node1 )
@@ -167,7 +167,8 @@ class MultilayerNetwork:
             
             
             tuple_like = (node1, node2)
-            self.extra_edges.append( tuple_like )
+            self.extra_edges_node.append( tuple_like )
+            self.extra_edges_index.append( tuple_like )
             self._ensure_correct_matrix_size(layer_name1, node1, node2)
             node1_index = self.nodes[layer_name1].index(node1)
             node2_index = self.nodes[layer_name1].index(node2)

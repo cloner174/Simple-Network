@@ -48,6 +48,10 @@ class MNAnalysis:
         for edges_ in self.network.extra_edges:
             aggregated_network.add_edge( node1= edges_[0], node2= edges_[1], layer_name1= 'ALL', weight=1 )
         
+        for node_, attrs_ in self.network.node_attributes.items() :
+            for attrs_name, attrs_values in attrs_.items() :
+                aggregated_network.set_node_attribute( node= node_, attr_name = attrs_name , attr_value = attrs_values )
+        
         if return_aggregated_network :
             return aggregated_network
         elif return_aggregated_network and return_adjacency_matric :

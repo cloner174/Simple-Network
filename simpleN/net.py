@@ -91,29 +91,12 @@ class MultilayerNetwork:
                             self.node_map[node_]['additional'] = additional
                         else:
                             if force_directly_assign_additionals == True :
-                                try:
-                                    current_val = self.node_map[node_]['additional']
-                                    self.node_map[node_]['additional'] = []
-                                    if current_val is not None :
-                                        for any_ in current_val :
-                                            self.node_map[node_]['additional'].append(any_)
-                                    self.node_map[node_]['additional'].append(additional)
-                                except:
-                                    self.node_map[node_]['additional'] = additional
+                                self.node_map[node_]['additional'] = additional
                             else:
                                 raise AssertionError(raise_message)
                     else:
                         if force_directly_assign_additionals == True :
-                            try:
-                                current_val = self.node_map[node_]['additional']
-                                if current_val is not None :
-                                    self.node_map[node_]['additional'] = []
-                                    self.node_map[node_]['additional'].append(current_val)
-                                    self.node_map[node_]['additional'].append(additional)
-                                else:
-                                    self.node_map[node_]['additional'] = additional
-                            except:
-                                self.node_map[node_]['additional'] = additional
+                            self.node_map[node_]['additional'] = additional
                         else:
                             raise AssertionError(raise_message)
     

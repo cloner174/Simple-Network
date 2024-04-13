@@ -19,6 +19,14 @@ class MultilayerNetwork:
         self.inter_layer_edges = []#       Managing inter-layer edges
         self.extra_edges = []
         self.extra_attributes = []
+        self.index_map = {}
+        self.index_mapper = 0
+    
+    
+    def _update_index_map(self, node) :
+        
+        self.index_map[node] = self.index_mapper
+        self.index_mapper += 1
     
     
     def add_layer(self, layer_name : str ):
@@ -38,10 +46,12 @@ class MultilayerNetwork:
         if node not in self.nodes[layer_name]:
             self.nodes[layer_name].append(node)
             self.node_set.add(node)
+            self._update_index_map(node=node)
             
             if self.large_graph:
                 if layer_name not in self.edges or not isinstance(self.edges[layer_name], sp.lil_matrix):
                     self.edges[layer_name] = sp.lil_matrix((1, 1))
+            
             else:
                 if layer_name not in self.edges or not isinstance(self.edges[layer_name], np.ndarray):
                     self.edges[layer_name] = np.zeros((1, 1), dtype=int)
@@ -267,6 +277,25 @@ class MultilayerNetwork:
                     continue
         
         return self_node_attributes
+    
+    def get_index_map(self, sorted : bool = True , change_the_current_self_of_index_map : bool = False ) :
+        
+        if not sorted :
+            return self.index_map
+        else:
+            temp = self.get_node_attributes()
+            temp_index_map = {}
+            temp_index = 0
+            for node_, _ in temp.items() :
+                if temp_index == 0 :
+                    pass
+                else:
+                    temp_index += 1
+                temp_index_map[temp_index] = node_
+            
+            if change_the_current_self_of_index_map == True :
+                self.index_map = temp_index_map
+            return temp_index_map
     
     
     def _calculate_layer_degrees_single_threaded(self, layer_name : str ):

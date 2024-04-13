@@ -19,17 +19,106 @@ class MultilayerNetwork:
         self.inter_layer_edges = []#       Managing inter-layer edges
         self.extra_edges = []
         self.extra_attributes = []
-        self.index_map = {}
-        self.index_mapper = 0
+        self.node_map = {}
+        self.index_node = 0
     
     
-    def _update_index_map(self, node) :
+    def _update_node_map(self, 
+                         node_,
+                         edge = None,
+                         layer_for_first_time : str = None,
+                         attributes : int | float = None,
+                         addjust_attributes_for_a_node : list = None ,
+                         additional = None,
+                         directly_assign_additionals : bool = False,
+                         force_directly_assign_additionals : bool = False ) :
         
-        self.index_map[node] = self.index_mapper
-        self.index_mapper += 1
+        if node_ not in self.node_map.keys() :
+            self.node_map[node_] = {}
+        
+        if 'index' not in self.node_map[node_].keys() :
+            self.node_map[node_]['index'] = self.index_node
+            self.index_node += 1
+        
+        if 'edges' not in self.node_map[node_].keys() :
+            self.node_map[node_]['edges'] = {}
+            self.node_map[node_]['edges']['node'] = []
+            self.node_map[node_]['edges']['index'] = []
+        
+        if edge is not None :
+            self.node_map[node_]['edges']['node'].append(edge)
+            self.node_map[node_]['edges']['index'].append(self.node_map[edge]['index'])
+        
+        if 'attributes' not in self.node_map[node_].keys() :
+            self.node_map[node_]['attributes'] = []
+        
+        if attributes is not None :
+            self.node_map[node_]['attributes'].append(attributes)
+        
+        if addjust_attributes_for_a_node is not None :
+            if len( self.node_map[node_]['attributes'] ) == 0 :
+                self.node_map[node_]['attributes'] = addjust_attributes_for_a_node
+            else:
+                for any_ in addjust_attributes_for_a_node :
+                    if isinstance(any_, int) or isinstance(any_, float) :
+                        self.node_map[node_]['attributes'].append(any_)
+                    else:
+                        raise ValueError( " The Type of attributes should be int or float ! ")
+        if 'layer' not in self.node_map[node_].keys() :
+            if layer_for_first_time is not None :
+                self.node_map[node_]['layer'] = layer_for_first_time
+            else:
+                for any_layer in self.nodes.keys() :
+                    if node_ in self.nodes[any_layer] :
+                        self.node_map[node_]['layer'] = any_layer
+                        break
+                    else:
+                        continue        
+        if additional is not None :
+            raise_message = f''' Be Aware that the current value of additionals for this node{node_} is NOT empty,
+                                 YOu Can TrY pass it WITHOUT directly_assign_additionals 
+                                 Or If you sure about doing this, use force_directly_assign_additionals = True and try again '''
+            if 'additional' not in self.node_map[node_].keys() :
+                if directly_assign_additionals :
+                    self.node_map[node_]['additional'] = additional
+                else:
+                    self.node_map[node_]['additional'] = []
+                    self.node_map[node_]['additional'].append(additional)
+            else:
+                if directly_assign_additionals :
+                    if isinstance(self.node_map[node_]['additional'], list) :
+                        if len( self.node_map[node_]['additional'] ) == 0 :
+                            self.node_map[node_]['additional'] = additional
+                        else:
+                            if force_directly_assign_additionals == True :
+                                try:
+                                    current_val = self.node_map[node_]['additional']
+                                    self.node_map[node_]['additional'] = []
+                                    if current_val is not None :
+                                        for any_ in current_val :
+                                            self.node_map[node_]['additional'].append(any_)
+                                    self.node_map[node_]['additional'].append(additional)
+                                except:
+                                    self.node_map[node_]['additional'] = additional
+                            else:
+                                raise AssertionError(raise_message)
+                    else:
+                        if force_directly_assign_additionals == True :
+                            try:
+                                current_val = self.node_map[node_]['additional']
+                                if current_val is not None :
+                                    self.node_map[node_]['additional'] = []
+                                    self.node_map[node_]['additional'].append(current_val)
+                                    self.node_map[node_]['additional'].append(additional)
+                                else:
+                                    self.node_map[node_]['additional'] = additional
+                            except:
+                                self.node_map[node_]['additional'] = additional
+                        else:
+                            raise AssertionError(raise_message)
     
     
-    def add_layer(self, layer_name : str ):
+    def add_layer(self, layer_name : str = 'ALL' ):
         
         if layer_name not in self.layers:
             
@@ -38,15 +127,16 @@ class MultilayerNetwork:
             self.edges[layer_name] = []
     
     
-    def add_node(self, layer_name : str , node ):
+    def add_node(self, node, layer_name : str = 'ALL' ):
         
         if layer_name not in self.layers:
             self.add_layer(layer_name)
         
         if node not in self.nodes[layer_name]:
             self.nodes[layer_name].append(node)
+            self._update_node_map(node_ = node , layer_for_first_time = layer_name)
             self.node_set.add(node)
-            self._update_index_map(node=node)
+            
             
             if self.large_graph:
                 if layer_name not in self.edges or not isinstance(self.edges[layer_name], sp.lil_matrix):
@@ -65,6 +155,8 @@ class MultilayerNetwork:
     
     def add_edge(self, node1, node2, layer_name1 : str, layer_name2 : str = None, weight : int | float = 1 ):
         
+        self._update_node_map( node_=node1, edge=node2)
+        self._update_node_map( node_=node2, edge=node1 )
         if layer_name2 is None or layer_name1 == layer_name2:
             
             if layer_name1 not in self.layers:
@@ -224,6 +316,10 @@ class MultilayerNetwork:
         attr_name (str): The name of the attribute.
         attr_value (any): The value of the attribute.
         """
+        if isinstance(attr_value, list) :
+            self._update_node_map(node_=node, addjust_attributes_for_a_node= attr_value)
+        else:
+            self._update_node_map(node_=node,attributes=attr_value)
         if node not in self.node_set:
             raise ValueError("Node does not exist.")
         if node not in self.node_attributes:

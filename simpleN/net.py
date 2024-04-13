@@ -167,8 +167,7 @@ class MultilayerNetwork:
             
             
             tuple_like = (node1, node2)
-            self.extra_edges_node.append( tuple_like )
-            self.extra_edges_index.append( tuple_like )
+            self.extra_edges.append( tuple_like )
             self._ensure_correct_matrix_size(layer_name1, node1, node2)
             node1_index = self.nodes[layer_name1].index(node1)
             node2_index = self.nodes[layer_name1].index(node2)

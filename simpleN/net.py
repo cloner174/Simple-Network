@@ -252,36 +252,21 @@ class MultilayerNetwork:
         
         return degrees
     
-    def get_node_attributes(self , run : bool = False , dtype_of_attribute_vals = None) :
-        if run:
-            
-            sorted_nodes = list( self.node_set )
-            sorted_nodes.sort()
-            
-            self_node_attributes = {}#           This is just a copy (local one) of actual self.node_attributes But It is Sorted !
-            for node_ in sorted_nodes :
-                for node_name, attrs_dict in self.node_attributes.items() :
-                    
-                    if node_name == node_ :
-                        self_node_attributes[node_name] = attrs_dict
-                    else:
-                        continue
-            
-            len_of_current_nodes = len(sorted_nodes)
-            #Create a np.zeros array of this size for rows !
-            dtype_of_attribute_vals = float if dtype_of_attribute_vals is None else dtype_of_attribute_vals
-            node_attributes = np.zeros( (len_of_current_nodes,), dtype = dtype_of_attribute_vals)
-            index_createor = 0
-            for sorted_node, sorted_attrs in self_node_attributes.items() :
-                if index_createor == 0 :
-                    pass
-                else:
-                    index_createor += 1
+    def get_node_attributes(self) :
+        
+        sorted_nodes = list( self.node_attributes.keys() )
+        sorted_nodes.sort()
+        
+        self_node_attributes = {}    # This is just a copy (local one) of actual self.node_attributes But It is Sorted !
+        for node_ in sorted_nodes :
+            for node_name, attrs_dict in self.node_attributes.items() :
                 
-                node_attributes.itemset( index_createor , list( sorted_attrs.values() ) )
-        else:
-            print(" Be Aware , This Function is just Supports Fully Atributed Graphs  ! ")
-            print( " If You are Sure About using this method, Please pass the run = True and try again. ")
+                if node_name == node_ :
+                    self_node_attributes[node_name] = attrs_dict
+                else:
+                    continue
+        
+        return self_node_attributes
     
     
     def _calculate_layer_degrees_single_threaded(self, layer_name : str ):

@@ -35,17 +35,14 @@ class MNAnalysis:
         Aggregate the multilayer network into a single-layer network.
         This method combines all layers into one, summing up the weights of inter-layer edges.
         """
-        aggregated_matrix = None
+        aggregated_matrix = []
         
         for layer in self.network.layers:
             
             matrix = self.network.edges[layer]
             if isinstance(matrix, sp.lil_matrix):
                 matrix = matrix.tocsr()
-            if aggregated_matrix is None:
-                aggregated_matrix = matrix
-            else:
-                aggregated_matrix += matrix
+            aggregated_matrix.append(matrix)
         
         return aggregated_matrix
     
@@ -127,7 +124,7 @@ class MNAnalysis:
         total_possible_inter_layer_edges = sum(len(self.network.nodes[layer]) for layer in self.network.layers) ** 2
         density = total_inter_layer_edges / total_possible_inter_layer_edges
         
-        weights = [weight for _, _, _, _, weight in inter_layer_edges]
+        weights = [weight for _, _, weight in inter_layer_edges]
         weight_distribution = np.histogram(weights, bins=10, density=True)[0]
         
         return {'density': density, 'weight_distribution': weight_distribution.tolist()}

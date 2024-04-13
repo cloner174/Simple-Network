@@ -32,23 +32,33 @@ class MNAnalysis:
         return degree_distributions
     
     
-    def aggregate_network(self):
+    def aggregate_network(self, return_adjacency_matric : bool = True, return_aggregated_Graph : bool = False ):
         """
         Aggregate the multilayer network into a single-layer network.
         This method combines all layers into one, summing up the weights of inter-layer edges.
         """
         from .net import MultilayerNetwork
         
-        aggregated_matrix = MultilayerNetwork()
-        aggregated_matrix.add_layer('ALL')
+        aggregated_network = MultilayerNetwork()
+        aggregated_network.add_layer('ALL')
         
         for node_ in self.network.node_set :
-            aggregated_matrix.add_node(layer_name = 'ALL', node = node_)
+            aggregated_network.add_node(layer_name = 'ALL', node = node_)
         
         for edges_ in self.network.extra_edges:
-            aggregated_matrix.add_edge( node1= edges_[0], node2= edges_[1], layer_name1= 'ALL', weight=1 )
+            aggregated_network.add_edge( node1= edges_[0], node2= edges_[1], layer_name1= 'ALL', weight=1 )
         
-        return aggregated_matrix.edges
+        if return_adjacency_matric :
+            aggregated_matrix = aggregated_network.edges
+            return aggregated_matrix['ALL']
+        elif return_aggregated_Graph :
+            return aggregated_network
+        elif return_adjacency_matric == False and return_aggregated_Graph == False :
+            print( " No Action To Could Provide Output !")
+            return
+        else :
+            aggregated_matrix = aggregated_network.edges
+            return aggregated_network, aggregated_matrix['ALL']
     
     
     def detect_communities(self, layer_name, n_clusters=2):

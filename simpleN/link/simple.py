@@ -2,7 +2,6 @@
 #
 import numpy as np
 
-
 class LinkPrediction:
     
     def __init__(self, multilayer_network):

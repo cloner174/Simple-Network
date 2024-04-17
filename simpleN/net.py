@@ -112,6 +112,20 @@ class MultilayerNetwork:
                               force_directly_assign_additionals = force_directly_assign_additionals)
     
     
+    def get_target_of_each_node(self, node = None, give_them_all : bool = True ) :
+        
+        if give_them_all :
+            temp_dict = {}
+            for any_node in self.node_set :
+                temp_dict[any_node] = self.node_map[any_node]['additional']
+            return temp_dict
+        else:
+            if node is not None :
+                return self.node_map[node]['additional']
+            else:
+                raise ReferenceError( " If You Are Passed the False to give_them_all, You should give this method a node to it can return its relevant target or Additionals for it \n if you are not sure, just run the method without any args!")
+    
+    
     def add_layer(self, layer_name : str = 'ALL' ):
         
         if layer_name not in self.layers:

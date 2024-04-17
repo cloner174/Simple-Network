@@ -101,6 +101,17 @@ class MultilayerNetwork:
                             raise AssertionError(raise_message)
     
     
+    def add_relevant_number_to_each_node( self, node, target : float | int | str = 'Any', force_directly_assign_additionals : bool = False ) :
+        
+        if node not in self.node_set :
+            self.node_set.add(node)
+        
+        self._update_node_map(node_=node, 
+                              additional = target, 
+                              directly_assign_additionals = True , 
+                              force_directly_assign_additionals = force_directly_assign_additionals)
+    
+    
     def add_layer(self, layer_name : str = 'ALL' ):
         
         if layer_name not in self.layers:

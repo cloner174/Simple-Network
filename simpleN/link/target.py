@@ -26,6 +26,7 @@ class NodeAttributePredictor:
         """
         Generate combined embeddings for nodes across multiple layers.
         """
+        from .advance import AdvanceLinkPrediction
         layer_embeddings = []
         layers_ = self.network.layers if layers is None else layers
         if isinstance(layers_ , list ) :

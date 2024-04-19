@@ -145,7 +145,7 @@ class NodeAttributePredictor:
         r2 = r2_score(y_test, y_pred)
         print(f"Mean Squared Error: {mse:.2f}")
         print(f"R^2 Score: {r2:.2f}")
-        return mse, r2
+        return self.model
     
     
     def predict_additional(self, attributes : list , embedding=None):

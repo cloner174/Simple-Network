@@ -22,7 +22,7 @@ class NodeAttributePredictor:
             warnings.warn( " You should Run the generate_embeddings method Now \n The Options for method in that method are : concatenate or average or pca. Default is average")
     
     
-    def generate_embeddings(self, layers : str | list = None, method : str = 'average' ):
+    def generate_embeddings(self, layers : str | list = None, method : str = 'average' , n_components : int = None ):
         """
         Generate combined embeddings for nodes across multiple layers.
         """
@@ -34,7 +34,7 @@ class NodeAttributePredictor:
                 # Generate embeddings for each layer
                 # AdvanceLinkPrediction -> ALP
                 ALP = AdvanceLinkPrediction(self.network)
-                ALP.generate_embeddings(layer=layer)
+                ALP.generate_embeddings(layer=layer, n_components = n_components)
                 if ALP.node_embeddings is not None:
                     layer_embeddings.append( ALP.node_embeddings )
                 else:
@@ -49,7 +49,7 @@ class NodeAttributePredictor:
                 self.embeddings = pca.fit_transform(concatenated)
         else:
             ALP = AdvanceLinkPrediction(self.network)
-            ALP.generate_embeddings(layer=layers_)
+            ALP.generate_embeddings(layer=layers_, n_components = n_components)
             self.embeddings = ALP.node_embeddings
     
     

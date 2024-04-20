@@ -47,6 +47,8 @@ class LinkPrediction:
         for i in range(len(nodes)):
             for j in range(i + 1, len(nodes)):
                 node1, node2 = nodes[i], nodes[j]
+                if node1 in self.network.node_map[node2]['edges']['node']:
+                    continue  # Skip if an edge already exists
                 if method == 'jaccard':
                     score = self.jaccard_coefficient(node1, node2)
                 elif method == 'common_neighbors':
@@ -54,6 +56,7 @@ class LinkPrediction:
                 elif method == 'adamic_adar':
                     score = self.adamic_adar_index(node1, node2)
                 scores[(node1, node2)] = score
+
         # Return the top k pairs with the highest scores
         return sorted(scores.items(), key=lambda x: x[1], reverse=True)[:top_k]
 

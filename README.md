@@ -201,9 +201,9 @@ The Visualize class enables interactive 3D visualization of networks using Plotl
 
     show_graph(edge_visibility_threshold=0.1): Renders the network in 3D. Edges below the specified visibility threshold are not displayed.
 
-## Contributing
+## Mistakes and Corrections
 
-We welcome contributions to the MultilayerNetwork Package. Please refer to GitHub contributing guidelines for more information on how to participate in the development.
+To err is human, and nobody likes a perfect person! If you come across any mistakes or if you have questions, feel free to raise an issue or submit a pull request. Your contributions to improving the content are highly appreciated. Please refer to GitHub contributing guidelines for more information on how to participate in the development.
 
 ## License
 

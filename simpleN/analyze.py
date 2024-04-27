@@ -26,7 +26,7 @@ class MNAnalysis:
         degree_distributions = {}
         
         for layer in self.network.layers:
-            degrees = self.network.calculate_layer_degrees(layer)
+            degrees = self.network.calculate_layer_degrees(layer).astype(int)
             degree_distributions[layer] = np.bincount(degrees) / float(len(degrees))
         
         return degree_distributions

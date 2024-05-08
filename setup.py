@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='Simple-Network',
-    version='0.1.0',
+    version='2.1.1',
     packages=find_packages(),
     author="Hamed Hajipour",
     author_email="cloner174.org@gmail.com",

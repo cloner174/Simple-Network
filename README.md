@@ -1,5 +1,8 @@
 # Simple-Network Package
 
+```bash
+        pip install simple-network
+```
 ## Overview
 
 The Simple-Network Package is a powerful tool designed for the construction and visualization of complex, multilayer networks. With an emphasis on ease of use and flexibility, this package allows users to create intricate network structures and render them in stunning 3D using Python. The MultilayerNetwork class is designed to efficiently handle both directed and undirected graphs, support sparse representations for large graphs, and manage attributes for nodes and edges, including the capability to handle inter-layer edges.
@@ -114,7 +117,7 @@ This package offers comprehensive tools for constructing and visualizing complex
 
 To start building a multilayer network, import the MultilayerNetwork class from the package:
 ```python
-from simpleG import MultilayerNetwork
+from simpleN import MultilayerNetwork
 ```
 *Initialize the network*
 ```
@@ -124,12 +127,19 @@ graph = MultilayerNetwork()
 
 ```python
 graph.add_layer(layer_name='Layer_1')
+# Or Simple as :
+graph.add_layer('Layer_1')
+#Both lines above are same as each other!
 ```
 *Adding Nodes*
 
 ```python
 graph.add_node(layer_name='Layer_1', node=1)
 graph.add_node(layer_name='Layer_1', node=4)
+# Or Simple as :
+graph.add_node(1, Layer_1')
+graph.add_node(4, 'Layer_1')
+#Both two ways above are same as each other!
 ```
 *Adding Edges*
 ```python
@@ -152,12 +162,12 @@ To visualize the network in 3D:
 from visualize import Visualize
 
 # Create an instance of Visualize with the network
-visualizer = Visualize(network=graph)
+my_visualizer = Visualize(network=graph)
 
 # Visualize the network
-visualizer.show_graph(edge_visibility_threshold=0.1)
+my_visualizer.show_graph(edge_visibility_threshold=0.1)
 ```
-Alternatively:
+Or Simple as :
 
 ```python
 Visualize(graph).show_graph()

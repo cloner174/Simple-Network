@@ -42,7 +42,7 @@ class MNAnalysis:
         """
         from .net import MultilayerNetwork
         if neet:
-            aggregated_network = MultilayerNetwork()
+            aggregated_network = MultilayerNetwork(large_graph = self.network.large_graph)
             aggregated_network.add_layer()
             for node_ in self.network.node_set :
                 aggregated_network.add_node(node = node_)
@@ -66,7 +66,7 @@ class MNAnalysis:
                 print( " No Action To Could Provide Output !")
                 return
         else:
-            aggregated_network = MultilayerNetwork()
+            aggregated_network = MultilayerNetwork(large_graph = self.network.large_graph)
             sources = []
             targets = []
             for edges_ in self.network.extra_edges:

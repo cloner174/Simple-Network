@@ -137,13 +137,13 @@ graph.add_layer('Layer_1')
 graph.add_node(layer_name='Layer_1', node=1)
 graph.add_node(layer_name='Layer_1', node=4)
 # Or Simple as :
-graph.add_node(1, Layer_1')
-graph.add_node(4, 'Layer_1')
+graph.add_node( 'Layer_1' , 1 )
+graph.add_node( 'Layer_1' , 4 )
 #Both two ways above are same as each other!
 ```
 *Adding Edges*
 ```python
-graph.add_edge(node1=1, node2=4, layer_name='Layer_1', weight=1)
+graph.add_edge( node1 = 1, node2 = 4, layer_name= 'Layer_1', weight=1)
 ```
 
 *Setting Node and Edge Attributes*
@@ -223,4 +223,4 @@ This project is licensed under the MIT License. For more details, see the LICENS
 
 email: cloner174.org@gmail.com
 
-other: https://t.me/PythonLearn0
+other: https://t.me/HamedHajipour
